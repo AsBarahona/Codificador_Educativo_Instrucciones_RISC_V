@@ -3,31 +3,42 @@
 Esqueleto del Codificador Educativo de Instrucciones RISC-V.
 CE4301 Arquitectura de Computadores I — Proyecto Individual — 2026-II
 
-Este esqueleto ya implementa el contrato de línea de comandos y de salida
-requerido por la especificación. Usted debe completar las dos funciones
-marcadas con TODO; puede modificar el resto del archivo si lo necesita,
-siempre que se preserve el contrato de invocación y la línea "HEX: 0x...".
-
-No es obligatorio usar este esqueleto ni Python: puede implementar su
-propia herramienta desde cero, en el lenguaje que prefiera, siempre que
-respete el mismo contrato (ver especificación, sección "Modo de operación").
+Elaborado y facilitado por Dr.-Ing. Jeferson González Gómez
 """
 import sys
+import re # Para manipular la intrucción de entrada y buscar los patrones según el formato 
 
 SOPORTADAS = ["add", "sub", "and", "or", "addi", "andi",
               "lw", "lb", "sw", "sb", "beq", "bne"]
 
+FORMAT_MAP = { # Diccionario para asociar los mnemónicos a un formato 
+    # Tipo R
+    "add": "R", 
+    "sub": "R", 
+    "and": "R", 
+    "or": "R",
+    # Tipo I 
+    "addi": "I", 
+    "andi": "I", 
+    "lw": "I_LOAD", 
+    "lb": "I_LOAD",
+    # Tipo S 
+    "sw": "S", 
+    "sb": "S",
+    # Tipo B 
+    "beq": "B", 
+    "bne": "B"
+}
 
 def encode_instruction(instruction: str) -> int:
     """
     Recibe una instrucción como texto, p. ej. "add x5, x6, x7", y debe
     retornar su codificación de 32 bits como entero (0 <= valor < 2**32).
 
-    Debe soportar únicamente las instrucciones en SOPORTADAS. Los valores
-    de opcode/funct3/funct7 de cada una NO se proveen aquí: deben
-    investigarse en el manual oficial de la ISA RISC-V (ver referencia en
-    la especificación) y documentarse en el README.
+    Debe soportar únicamente las instrucciones en SOPORTADAS.
     """
+    data = parse_instruction(instruction)
+
     # TODO: implementar. Sugerencia: parsear el mnemónico y los operandos,
     # despachar según el formato (R/I/S/B), y ensamblar los campos con
     # operaciones de bits.
@@ -40,12 +51,32 @@ def explain_instruction(instruction: str, word: int) -> str:
     forma visual, los 32 bits de 'word' divididos en los campos del
     formato correspondiente (R, I, S o B) — indicando el rango de bits y
     el valor de cada campo — junto con una breve explicación de cada uno.
-    El formato visual (colores, tabla, arte ASCII, etc.) queda a su
-    criterio, siempre que sea claro.
     """
     # TODO: implementar.
     raise NotImplementedError("explain_instruction: pendiente de implementar")
 
+def parse_instruction(instruction: str) -> dict:
+    """
+    Parsea la instrucción dada como texto y retorna un diccionario
+    con la información estructurada.
+    """
+    # Limpiar comas y espacios redundantes (add, x5, x6, x7 -> addx5x6x7)
+    clean_inst = instruction.strip().replace(",", " ")
+    tokens = clean_inst.split()
+    
+    if not tokens:
+        raise ValueError("Instrucción vacía.")
+        
+    mnemonic = tokens[0].lower()
+    
+    if mnemonic not in FORMAT_MAP:
+        raise ValueError(f"Instrucción no soportada: '{mnemonic}'")
+        
+    fmt_inst = FORMAT_MAP[mnemonic] #Busca la pareja del mnemónico en el diccionario (el formato)
+    parsed_data = {"mnemonic": mnemonic, "format_type": fmt_inst.replace("_LOAD", "")} #Deja el tipo I_LOAD como I
+    print(parsed_data)
+
+    return parsed_data
 
 def main():
     if len(sys.argv) != 2:
