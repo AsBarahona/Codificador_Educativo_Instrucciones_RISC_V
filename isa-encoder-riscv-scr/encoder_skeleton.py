@@ -66,6 +66,10 @@ def reg_to_int(reg_str: str) -> int:
         raise ValueError(f"Número de registro fuera de rango (0-31): {num}")
     return num
 
+def reg_num_to_binary(num_reg: int, bits: int) -> int:
+    binary = bin(num_reg)[2:].zfill(bits) #Pasar a binario con cierta cant. de bits   
+    return binary
+
 def parse_instruction(instruction: str) -> dict:
     """
     Parsea la instrucción dada como texto y retorna un diccionario
@@ -90,10 +94,24 @@ def parse_instruction(instruction: str) -> dict:
     if fmt_inst == "R":
         if len(tokens) != 4:
             raise ValueError(f"Formato incorrecto para {mnemonic}. Estructura adecuada: {mnemonic} rd, rs1, rs2")
+        
+        #funct3 y funct7 para tipo R
+        funct3_map = {"add": "000", "sub": "000", "and": "111", "or": "110"}
+        funct7_map = {"add": "0000000", "sub": "0100000", "and": "0000000", "or": "0000000"}
+        rd = reg_to_int(tokens[1])
+        rs1 = reg_to_int(tokens[2])
+        rs2 = reg_to_int(tokens[3])
+
         parsed_data.update({
-            "rd": reg_to_int(tokens[1]),
-            "rs1": reg_to_int(tokens[2]),
-            "rs2": reg_to_int(tokens[3])
+            "rd": rd,
+            "rs1": rs1,
+            "rs2": rs2,
+            "opcode": 0b0110011,
+            "funct3": funct3_map[mnemonic],
+            "funct7": funct7_map[mnemonic],
+            "rd_binary": reg_num_to_binary(rd, 5),
+            "rs1_binary": reg_num_to_binary(rs1, 5),
+            "rs2_binary": reg_num_to_binary(rs2, 5)
         })
 
     # Tipo I Aritmético: addi, andi -> mnemonic rd, rs1, imm
