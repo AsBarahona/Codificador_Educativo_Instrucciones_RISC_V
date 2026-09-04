@@ -162,6 +162,45 @@ def explain_instruction(instruction_dict: dict) -> int:
         print(f"Instrucción completa (32 bits): {word_32bit}")
         return int(word_32bit, 2)
 
+    # Tipo B 
+    elif instruction_dict.get("format_type") == "B":
+        m = instruction_dict["mnemonic"]
+        rs1, rs2, imm = instruction_dict["rs1"], instruction_dict["rs2"], instruction_dict["imm"]
+
+        rs1_b = f"{rs1:05b}"
+        rs2_b = f"{rs2:05b}"
+        imm_b = num_to_binary(imm, 13)
+        funct3 = instruction_dict["funct3"]
+        opcode_val = instruction_dict["opcode"]
+        opcode_b = f"{opcode_val:07b}"
+
+        imm_12 = imm_b[0]# Bit 12 del inmediato
+        imm_10_5 = imm_b[2:8] # Bits [10:5]
+        imm_4_1 = imm_b[8:12] # Bits [4:1]
+        imm_11 = imm_b[1] # Bit 11 del inmediato
+
+        # 32 bits según el orden del formato B
+        word_32bit = f"{imm_12}{imm_10_5}{rs2_b}{rs1_b}{funct3}{imm_4_1}{imm_11}{opcode_b}"
+
+        print(" ")
+        print("=== Desglose del Formato Tipo B ===")
+        print(f"Campos:  | imm[12] | imm[10:5] |   rs2   |   rs1   | funct3 | imm[4:1] | imm[11] | opcode  |")
+        print(f"Rangos:  |  [31]   |  [30:25]  | [24:20] | [19:15] | [14:12]|  [11:8]  |   [7]   |  [6:0]  |")
+        print(f"Bits:    |    {imm_12}    |   {imm_10_5}  |  {rs2_b}  |  {rs1_b}  |   {funct3}  |   {imm_4_1}   |    {imm_11}    | {opcode_b} |")
+        print(f"Valores: | {imm_12:<7} | {imm_10_5:<9} | x{rs2:<6} | x{rs1:<6} |   {funct3}  | {imm_4_1:<8} |    {imm_11}    | {hex(opcode_val):<7} |\n")
+
+        print(
+            f"\n--- Explicación de los campos de la instrucción {m} ---\n"
+            f"- opcode ({opcode_b}): Define que es una instrucción de salto condicional (Branch).\n"
+            f"- rs1 (x{rs1} en binario {rs1_b}) y rs2 (x{rs2} en binario {rs2_b}): Registros a comparar.\n"
+            f"- funct3 ({funct3}): Condición de salto exacta ('{m}').\n"
+            f"- imm ({imm} en binario {imm_b}): Offset en bytes descompuesto en bits desordenados [12|10:5|4:1|11]."
+        )
+
+        print(" ")
+        print(f"Instrucción completa (32 bits): {word_32bit}")
+        return int(word_32bit, 2)
+
     else:
         raise NotImplementedError("explain_instruction: pendiente de implementar")
 
