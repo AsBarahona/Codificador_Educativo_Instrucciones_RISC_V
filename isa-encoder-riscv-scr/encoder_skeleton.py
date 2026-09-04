@@ -42,7 +42,7 @@ def encode_instruction(instruction: str) -> int:
         raise NotImplementedError("encode_instruction: pendiente de implementar")
     else: 
         inst_32_bits = explain_instruction(data)
-        #print(inst_32_bits)
+        return inst_32_bits
 
 def explain_instruction(instruction_dict: dict) -> int:
     """
