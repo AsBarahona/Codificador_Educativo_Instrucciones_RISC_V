@@ -124,6 +124,44 @@ def explain_instruction(instruction_dict: dict) -> int:
         print(f"Instrucción completa (32 bits): {word_32bit}")
         return int(word_32bit, 2)
 
+    # Tipo S 
+    elif instruction_dict.get("format_type") == "S":
+        m = instruction_dict["mnemonic"]
+        rs1, rs2, imm = instruction_dict["rs1"], instruction_dict["rs2"], instruction_dict["imm"]
+
+        rs1_b = f"{rs1:05b}"
+        rs2_b = f"{rs2:05b}"
+        imm_b = num_to_binary(imm, 12)
+        funct3 = instruction_dict["funct3"]
+        opcode_val = instruction_dict["opcode"]
+        opcode_b = f"{opcode_val:07b}"
+
+        imm_11_5 = imm_b[0:7] # Partición del inmediato 
+        imm_4_0 = imm_b[7:12]
+
+        # 32 bits según el orden del formato S
+        word_32bit = f"{imm_11_5}{rs2_b}{rs1_b}{funct3}{imm_4_0}{opcode_b}"
+
+        print(" ")
+        print("=== Desglose del Formato Tipo S ===")
+        print(f"Campos:  | imm[11:5] |   rs2   |   rs1   | funct3 | imm[4:0] | opcode  |")
+        print(f"Rangos:  |  [31:25]  | [24:20] | [19:15] | [14:12]|  [11:7]  |  [6:0]  |")
+        print(f"Bits:    |  {imm_11_5}  |  {rs2_b}  |  {rs1_b}  |   {funct3}  |   {imm_4_0}  | {opcode_b} |")
+        print(f"Valores: | {imm:<9} | x{rs2:<6} | x{rs1:<6} |   {funct3}  | {imm:<8} | {hex(opcode_val):<7} |\n")
+
+        print(
+            f"\n--- Explicación de los campos de la instrucción {m} ---\n"
+            f"- opcode ({opcode_b}): Define que es una instrucción de almacenamiento (Store).\n"
+            f"- rs1 (x{rs1} en binario {rs1_b}): Registro base para la dirección de memoria.\n"
+            f"- rs2 (x{rs2} en binario {rs2_b}): Registro fuente con el dato a guardar.\n"
+            f"- funct3 ({funct3}): Especifica el tamaño de la transferencia ('{m}').\n"
+            f"- imm[11:0] ({imm} en binario {imm_b}): Offset de memoria partido en imm[11:5] ({imm_11_5}) e imm[4:0] ({imm_4_0})."
+        )
+
+        print(" ")
+        print(f"Instrucción completa (32 bits): {word_32bit}")
+        return int(word_32bit, 2)
+
     else:
         raise NotImplementedError("explain_instruction: pendiente de implementar")
 
@@ -239,20 +277,42 @@ def parse_instruction(instruction: str) -> dict:
         match = re.match(r"^(-?\d+)\((x\d+)\)$", tokens[2]) #Verifica que tokens[2] sea de la forma imm(rs1) y separa en grupos
         if not match:
             raise ValueError(f"Formato de memoria inválido: '{tokens[2]}'")
+        
+        funct3_map_S = {"sb": "000", "sw": "010"} #funct3 para tipo S
+        rs2 = reg_to_int(tokens[1])
+        imm = int(match.group(1))
+        rs1 = reg_to_int(match.group(2))
+
         parsed_data.update({
-            "rs2": reg_to_int(tokens[1]),
-            "imm": int(match.group(1)),
-            "rs1": reg_to_int(match.group(2))
+            "rs1": rs1,
+            "rs2": rs2,
+            "imm": imm,
+            "opcode": 0b0100011,
+            "funct3": funct3_map_S[mnemonic],
+            "rs1_binary": num_to_binary(rs1, 5),
+            "rs2_binary": num_to_binary(rs2, 5),
+            "imm_binary": num_to_binary(imm, 12)
         })
 
     # Tipo B Salto: beq, bne -> mnemonic rs1, rs2, imm
     elif fmt_inst == "B":
         if len(tokens) != 4:
             raise ValueError(f"Formato incorrecto para {mnemonic}. Estructura adecuada: {mnemonic} rs1, rs2, imm")
+
+        funct3_map = {"beq": "000", "bne": "001"} # funct3 para B
+        rs1 = reg_to_int(tokens[1])
+        rs2 = reg_to_int(tokens[2])
+        imm = int(tokens[3])
+
         parsed_data.update({
-            "rs1": reg_to_int(tokens[1]),
-            "rs2": reg_to_int(tokens[2]),
-            "imm": int(tokens[3])
+            "rs1": rs1,
+            "rs2": rs2,
+            "imm": imm,
+            "opcode": 0b1100011,
+            "funct3": funct3_map[mnemonic],
+            "rs1_binary": num_to_binary(rs1, 5),
+            "rs2_binary": num_to_binary(rs2, 5),
+            "imm_binary": num_to_binary(imm, 13) # 13 bits para tomar imm[12:0] (bit 0)
         })
 
     # Imprimir descomposición en consola
