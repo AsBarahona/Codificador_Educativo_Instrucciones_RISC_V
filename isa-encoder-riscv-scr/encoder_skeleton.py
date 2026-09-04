@@ -38,22 +38,55 @@ def encode_instruction(instruction: str) -> int:
     Debe soportar únicamente las instrucciones en SOPORTADAS.
     """
     data = parse_instruction(instruction)
+    if data == {}:
+        raise NotImplementedError("encode_instruction: pendiente de implementar")
+    else: 
+        inst_32_bits = explain_instruction(data)
+        #print(inst_32_bits)
 
-    # TODO: implementar. Sugerencia: parsear el mnemónico y los operandos,
-    # despachar según el formato (R/I/S/B), y ensamblar los campos con
-    # operaciones de bits.
-    raise NotImplementedError("encode_instruction: pendiente de implementar")
-
-
-def explain_instruction(instruction: str, word: int) -> str:
+def explain_instruction(instruction_dict: dict) -> int:
     """
-    Debe retornar un texto (para imprimirse en pantalla) que muestre, de
-    forma visual, los 32 bits de 'word' divididos en los campos del
+    Imprime en pantalla los 32 bits de 'word' divididos en los campos del
     formato correspondiente (R, I, S o B) — indicando el rango de bits y
     el valor de cada campo — junto con una breve explicación de cada uno.
+    Devuelve la instrucción en 32 bits
     """
-    # TODO: implementar.
-    raise NotImplementedError("explain_instruction: pendiente de implementar")
+    # Tipo R
+    if instruction_dict.get("format_type") == "R":
+        m = instruction_dict["mnemonic"]
+        rd, rs1, rs2 = instruction_dict["rd"], instruction_dict["rs1"], instruction_dict["rs2"]
+        rd_b, rs1_b, rs2_b = instruction_dict["rd_binary"], instruction_dict["rs1_binary"], instruction_dict["rs2_binary"]
+        funct7 = instruction_dict["funct7"]
+        funct3 = instruction_dict["funct3"]
+        opcode_b = f"{instruction_dict['opcode']:07b}"
+
+        #32 bits según el orden del formato R
+        word_32bit = f"{funct7}{rs2_b}{rs1_b}{funct3}{rd_b}{opcode_b}"
+
+        print("  ")
+        print("=== Desglose del Formato Tipo R ===")
+        print(f"Campos:  | funct7  |  rs2  |  rs1  | funct3 |   rd  | opcode  |")
+        print(f"Rangos:  | [31:25] |[24:20]|[19:15]| [14:12]| [11:7]|  [6:0]  |")
+        print(f"Bits:    | {funct7} | {rs2_b} | {rs1_b} |  {funct3}   | {rd_b} | {opcode_b} |")
+        print(f"Valores: | {instruction_dict['mnemonic']:<7} | x{instruction_dict['rs2']:<4} | x{instruction_dict['rs1']:<4} | {funct3}    | x{instruction_dict['rd']:<3} | 0x33    |\n")
+
+        print(
+            f"\n--- Explicación de los campos de la intrucción {m}) ---\n"
+            f"- opcode (0110011): Define que es una instrucción de formato R.\n"
+            f"- rd (x{rd} en binario {rd_b}): Registro destino donde se almacenará el resultado.\n"
+            f"- rs1 (x{rs1} en binario {rs1_b}) y rs2 (x{rs2} en binario {rs2_b}): Registros fuentes con los operandos de entrada.\n"
+            f"- funct3 ({funct3}) y funct7 ({funct7}): Códigos de control que especifican la operación '{m}'.\n"
+            f"- Inmediato: No aplica (solo opera con registros)."
+        )
+
+        print("  ")
+        print(f"Instrucción completa (32 bits): {word_32bit}")
+        return int(word_32bit, 2)
+
+    else:
+        raise NotImplementedError("explain_instruction: pendiente de implementar")
+
+
 
 def reg_to_int(reg_str: str) -> int:
     """Convierte cadenas como 'x5' o 'x10' a su número de registro (en un entero)."""
@@ -66,7 +99,8 @@ def reg_to_int(reg_str: str) -> int:
         raise ValueError(f"Número de registro fuera de rango (0-31): {num}")
     return num
 
-def reg_num_to_binary(num_reg: int, bits: int) -> int:
+def num_to_binary(num_reg: int, bits: int) -> int:
+    """Convierte un numero entero decimal a un número binario con una cant. determinada de bits"""
     binary = bin(num_reg)[2:].zfill(bits) #Pasar a binario con cierta cant. de bits   
     return binary
 
@@ -109,9 +143,9 @@ def parse_instruction(instruction: str) -> dict:
             "opcode": 0b0110011,
             "funct3": funct3_map[mnemonic],
             "funct7": funct7_map[mnemonic],
-            "rd_binary": reg_num_to_binary(rd, 5),
-            "rs1_binary": reg_num_to_binary(rs1, 5),
-            "rs2_binary": reg_num_to_binary(rs2, 5)
+            "rd_binary": num_to_binary(rd, 5),
+            "rs1_binary": num_to_binary(rs1, 5),
+            "rs2_binary": num_to_binary(rs2, 5)
         })
 
     # Tipo I Aritmético: addi, andi -> mnemonic rd, rs1, imm
@@ -162,6 +196,7 @@ def parse_instruction(instruction: str) -> dict:
         })
 
     # Imprimir descomposición en consola
+    print("")
     print("=== Descomposición de la Instrucción ===")
     for k, v in parsed_data.items():
         print(f"  {k}: {v}")
@@ -176,9 +211,9 @@ def main():
         sys.exit(2)
 
     instruction = sys.argv[1]
-    word = encode_instruction(instruction) & 0xFFFFFFFF
+    word = encode_instruction(instruction) 
 
-    print(explain_instruction(instruction, word))
+    ##print(explain_instruction(instruction, word))
 
     # No modificar el formato de la siguiente línea: la especificación la
     # requiere, literal, para permitir la validación automática.
