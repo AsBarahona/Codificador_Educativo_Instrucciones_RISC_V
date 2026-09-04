@@ -83,10 +83,49 @@ def explain_instruction(instruction_dict: dict) -> int:
         print(f"Instrucción completa (32 bits): {word_32bit}")
         return int(word_32bit, 2)
 
+    # Tipo I (Aritmético y Carga)
+    elif instruction_dict.get("format_type") in ("I", "I_LOAD"):
+        m = instruction_dict["mnemonic"]
+        rd, rs1, imm = instruction_dict["rd"], instruction_dict["rs1"], instruction_dict["imm"]
+        
+        # Representaciones en binario
+        rd_b = f"{rd:05b}"
+        rs1_b = f"{rs1:05b}"
+        imm_b = str(num_to_binary(imm, 12))
+        funct3 = instruction_dict["funct3"]
+        opcode_val = instruction_dict["opcode"]
+        opcode_b = f"{opcode_val:07b}"
+
+        # 32 bits según el orden del formato I
+        word_32bit = f"{imm_b}{rs1_b}{funct3}{rd_b}{opcode_b}"
+
+        # Determinar si es de carga o aritmética para la explicación textual
+        is_load = (instruction_dict.get("format_type") == "I_LOAD" or opcode_val == 0x03)
+        op_desc = "de Carga (Load)" if is_load else "I Aritmética"
+        imm_desc = f"Offset de memoria ({imm})" if is_load else f"Valor constante inmediato ({imm})"
+
+        print(" ")
+        print("=== Desglose del Formato Tipo I ===")
+        print(f"Campos:  |    imm[11:0]   |   rs1   | funct3 |   rd    | opcode  |")
+        print(f"Rangos:  |    [31:20]     | [19:15] | [14:12]|  [11:7] |  [6:0]  |")
+        print(f"Bits:    |  {imm_b}  |  {rs1_b}  |  {funct3}   |  {rd_b}  | {opcode_b} |")
+        print(f"Valores: | {imm:<14} | x{rs1:<6} | {funct3}    | x{rd:<6} | {hex(opcode_val):<7} |\n")
+
+        print(
+            f"\n--- Explicación de los campos de la instrucción {m} ---\n"
+            f"- opcode ({opcode_b}): Define que es una instrucción {op_desc}.\n"
+            f"- rd (x{rd} en binario {rd_b}): Registro destino donde se guardará el resultado/dato.\n"
+            f"- rs1 (x{rs1} en binario {rs1_b}): Registro base (dirección base o primer operando).\n"
+            f"- funct3 ({funct3}): Código de control que especifica la operación exacta '{m}'.\n"
+            f"- imm[11:0] ({imm} en binario {imm_b}): {imm_desc} en complemento a dos."
+        )
+
+        print(" ")
+        print(f"Instrucción completa (32 bits): {word_32bit}")
+        return int(word_32bit, 2)
+
     else:
         raise NotImplementedError("explain_instruction: pendiente de implementar")
-
-
 
 def reg_to_int(reg_str: str) -> int:
     """Convierte cadenas como 'x5' o 'x10' a su número de registro (en un entero)."""
@@ -101,7 +140,8 @@ def reg_to_int(reg_str: str) -> int:
 
 def num_to_binary(num_reg: int, bits: int) -> int:
     """Convierte un numero entero decimal a un número binario con una cant. determinada de bits"""
-    binary = bin(num_reg)[2:].zfill(bits) #Pasar a binario con cierta cant. de bits   
+    num_masked = num_reg & ((1 << bits) - 1) # Aplicar complemento a dos si num_reg es negativo
+    binary = bin(num_masked)[2:].zfill(bits) #Pasar a binario con cierta cant. de bits   
     return binary
 
 def parse_instruction(instruction: str) -> dict:
@@ -152,10 +192,19 @@ def parse_instruction(instruction: str) -> dict:
     elif fmt_inst == "I":
         if len(tokens) != 4:
             raise ValueError(f"Formato incorrecto para {mnemonic}. Estructura adecuada: {mnemonic} rd, rs1, imm")
+
+        funct3_map_i = {"addi": "000", "andi": "111"}
+        rd, rs1, imm = reg_to_int(tokens[1]), reg_to_int(tokens[2]), int(tokens[3])
+
         parsed_data.update({
-            "rd": reg_to_int(tokens[1]),
-            "rs1": reg_to_int(tokens[2]),
-            "imm": int(tokens[3])
+            "rd": rd,
+            "rs1": rs1,
+            "imm": imm,
+            "opcode": 0b0010011,
+            "funct3": funct3_map_i[mnemonic],
+            "rd_binary": num_to_binary(rd, 5),
+            "rs1_binary": num_to_binary(rs1, 5),
+            "imm_binary": num_to_binary(imm, 12)
         })
 
     # Tipo I Carga: lw, lb -> mnemonic rd, imm(rs1)
@@ -166,10 +215,21 @@ def parse_instruction(instruction: str) -> dict:
         match = re.match(r"^(-?\d+)\((x\d+)\)$", tokens[2]) #Verifica que tokens[2] sea de la forma imm(rs1)
         if not match:
             raise ValueError(f"Formato de memoria inválido: '{tokens[2]}'")
+
+        funct3_map_load = {"lb": "000", "lw": "010"}
+        rd = reg_to_int(tokens[1])
+        imm = int(match.group(1))
+        rs1 = reg_to_int(match.group(2))
+
         parsed_data.update({
-            "rd": reg_to_int(tokens[1]),
-            "imm": int(match.group(1)),
-            "rs1": reg_to_int(match.group(2))
+            "rd": rd,
+            "rs1": rs1,
+            "imm": imm,
+            "opcode": 0b0000011,
+            "funct3": funct3_map_load[mnemonic],
+            "rd_binary": num_to_binary(rd, 5),
+            "rs1_binary": num_to_binary(rs1, 5),
+            "imm_binary": num_to_binary(imm, 12)
         })
 
     # Tipo S Memoria: sw, sb -> mnemonic rs2, imm(rs1)
