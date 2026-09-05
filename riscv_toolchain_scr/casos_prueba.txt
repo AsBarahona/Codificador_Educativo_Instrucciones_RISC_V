@@ -1,0 +1,48 @@
+# --- add ---
+add x5, x6, x7;0x007302b3
+add x0, x10, x11;0x00b50033
+add x31, x30, x29;0x01df0fb3
+# --- sub ---
+sub x1, x2, x3;0x403100b3
+sub x10, x0, x5;0x40500533
+sub x31, x31, x31;0x41ff8fb3
+# --- and ---
+and x12, x13, x14;0x00e6f633
+and x1, x0, x2;0x002070b3
+and x30, x31, x1;0x001fff33
+# --- or ---
+or x8, x9, x10;0x00a4e433
+or x15, x15, x0;0x0007e7b3
+or x31, x1, x30;0x01e0efb3
+# --- addi ---
+addi x5, x6, 100;0x06430293
+addi x7, x8, -50;0xfce40393
+addi x9, x0, 2047;0x7ff00493
+# --- andi ---
+andi x1, x2, 15;0x00f17093
+andi x0, x5, 0;0x0002f013
+andi x3, x4, -2048;0x80027193
+# --- lw ---
+lw x31, 8(x11);0x0085af83
+lw x12, -16(x13);0xff06a603
+lw x0, 0(x0);0x00002003
+# --- lb ---
+lb x0, 4(x2);0x00410003
+lb x3, -2048(x4);0x80020183
+lb x31, 2047(x31);0x7fff8f83
+# --- sw ---
+sw x1, 12(x6);0x00132623
+sw x7, -32(x8);0xfe742023
+sw x0, 0(x10);0x00052023
+# --- sb ---
+sb x1, 0(x2);0x00110023
+sb x3, -2048(x0);0x80300023
+sb x31, 2047(x30);0x7fff0fa3
+# --- beq ---
+beq x30, x0, -84;0xfa0f06e3
+beq x3, x4, -8;0xfe418ce3
+beq x0, x0, 0;0x00000063
+# --- bne ---
+bne x5, x0, 234;0x0e029563
+bne x7, x8, -4096;0x80839063
+bne x31, x0, 4094;0x7e0f9fe3
