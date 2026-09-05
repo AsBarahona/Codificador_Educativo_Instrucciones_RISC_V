@@ -52,7 +52,8 @@ A continuación se describe la estructura general del proyecto y el contenido de
 ```text
 Codificador_Educativo_Instrucciones_-RISC_V/
 ├── docs/
-│   └── desarrollo.md                 
+│   ├── imags/
+│   └── Desarrollo.md                 
 ├── isa-encoder-riscv-scr/
 │   ├── encoder_skeleton.py            
 │   ├── README.md                     
@@ -69,4 +70,4 @@ Codificador_Educativo_Instrucciones_-RISC_V/
 
 * **`isa-encoder-riscv-scr/`**: Contiene los archivos de ejecución del codificador. Incluye `encoder_skeleton.py` (Código fuente principal del codificador en Python) y `run.sh` (Script de entrada para ejecutar la herramienta desde Bash).
 * **`riscv_toolchain_scr/`**: Alberga el entorno de pruebas automatizadas. Contiene el script `validar.ps1` que compara las salidas del codificador contra la compilación oficial de xPack GNU RISC-V GCC, así como el archivo `casos_prueba.txt`.
-* **`docs/`**: Incluye la documentación técnica en formato Markdown (`.md`) que detalla el diseño, la arquitectura y las decisiones tomadas durante el desarrollo del proyecto.
+* **`docs/`**: Incluye la documentación técnica en formato Markdown (`.md`) que detalla el diseño, la arquitectura y las decisiones tomadas durante el desarrollo del proyecto. En el archivo `Desarrollo.md`.

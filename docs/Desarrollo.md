@@ -61,6 +61,7 @@ A diferencia de una herramienta que únicamente presenta el valor hexadecimal fi
 La distribución de los campos, los `opcode`, los valores de `funct3`, `funct7` y la organización de los formatos de instrucción fueron tomados de la especificación de la arquitectura RISC-V:
 
 > **The RISC-V Instruction Set Manual, Volume I: User-Level ISA, Document Version 20191213.**
+> [Consultar manual](https://archive.org/details/the-risc-v-instruction-set-manual-volume-i-user-level-isa-document-version-20191213/mode/2up)
 
 Esta especificación se utilizó como referencia para construir correctamente las instrucciones de 32 bits correspondientes a los formatos **R, I, S y B** implementados en el proyecto, para determinar la posición de los campos `opcode, rd, rs1, rs2, funct3, funct7, imm` así como la división y reorganización de los bits del inmediato utilizada en los formatos S y B.
 
@@ -650,7 +651,7 @@ El script procesa los casos de prueba y permite comprobar si el valor hexadecima
 
 ## 8.1 Evidencia de comparación
 
-Para la validación de las instrucciones implementadas se creó el script `validar.ps1`, el cual ejecuta 36 instrucciones RISC-V establecidas en el archivo `casos_prueba.txt` el cual utiliza casos límites, valores negativos y positivos. Las 36 instrucciones son: 
+Para la validación de las instrucciones implementadas se creó el script `validar.ps1`, el cual ejecuta 36 instrucciones RISC-V establecidas en el archivo `casos_prueba.txt` el cual utiliza casos límites, valores negativos y positivos. Las 36 instrucciones validadas son: 
 
 ```text
 # --- add ---
@@ -703,7 +704,7 @@ bne x7, x8, -4096;0x80839063
 bne x31, x0, 4094;0x7e0f9fe3
 ```
 
-El script `validar.ps1` está realizado con verificación automática, por lo que al ejecutarse, muestra en consola el resultado hexadecimales esperado, el producido por el toolchain y el de la herramienta creada. A continuación se adjuntan imágenes de algunas partes salida de dicho script. En la segunda imagen se puede ver que los 36 casos fueron exitosos. 
+El script `validar.ps1` está realizado con verificación automática, por lo que al ejecutarse, muestra en consola el resultado hexadecimal esperado, el producido por el toolchain y el de la herramienta creada. A continuación se adjuntan imágenes de algunas partes salida de dicho script. En la segunda imagen se puede ver que los 36 casos fueron exitosos. 
 
 ![](imags/v1.png)
 ![](imags/v2.png)
